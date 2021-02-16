@@ -7,14 +7,17 @@ const accesKey = process.env.REACT_APP_BASE_URL;
 
 export default function App() {
   const [photos, setPhotos] = useState([]);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     getPhotos();
-  }, []);
+  }, [page]);
 
   function getPhotos() {
     axios
-      .get(`${accesKey}/photos/?client_id=${process.env.REACT_APP_ACCESS_KEY}`)
+      .get(
+        `${accesKey}/photos/?client_id=${process.env.REACT_APP_ACCESS_KEY}&page=${page}`
+      )
       .then((res) => {
         const { data } = res;
         setPhotos((photos) => [...photos, ...data]);
@@ -42,7 +45,7 @@ export default function App() {
       </form>
       <InfiniteScroll
         dataLength={photos.length}
-        next={getPhotos}
+        next={() => setPage((page) => (page += 1))}
         hasMore={true}
         loader={<h4>Loading...</h4>}
       >
