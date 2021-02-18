@@ -12,6 +12,7 @@ export default function App() {
 
   useEffect(() => {
     getPhotos();
+    // eslint-disable-next-line
   }, [page]);
 
   function getPhotos() {
