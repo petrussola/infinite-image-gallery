@@ -3,31 +3,42 @@ import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import './App.css';
 
-const accesKey = process.env.REACT_APP_BASE_URL;
+const baseUrl = process.env.REACT_APP_BASE_URL;
 
 export default function App() {
   const [photos, setPhotos] = useState([]);
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     getPhotos();
   }, [page]);
 
   function getPhotos() {
+    let apiUrl = `${baseUrl}photos?`;
+    if (query) apiUrl = `${baseUrl}search/photos?query=${query}`;
+    apiUrl += `&page=${page}`;
+    apiUrl += `&client_id=${process.env.REACT_APP_ACCESS_KEY}`;
+
     axios
-      .get(
-        `${accesKey}/photos/?client_id=${process.env.REACT_APP_ACCESS_KEY}&page=${page}`
-      )
-      .then((res) => {
-        const { data } = res;
-        setPhotos((photos) => [...photos, ...data]);
+      .get(apiUrl)
+      .then((data) => {
+        const imagesFromApi = data.data.results ?? data.data;
+        if (page === 1) setPhotos(imagesFromApi);
+        setPhotos((photos) => [...photos, ...imagesFromApi]);
       })
       .catch((error) => {
         console.log(error);
       });
   }
 
-  if (!accesKey) {
+  function searchPhotos(e) {
+    e.preventDefault();
+    setPage(1);
+    getPhotos();
+  }
+
+  if (!baseUrl) {
     return (
       <a href="https://unsplash.com/documentation" className="error">
         Required: get your unsplash key!
@@ -39,8 +50,13 @@ export default function App() {
     <div className="app">
       <h1>Unsplash Image Gallery!</h1>
 
-      <form>
-        <input type="text" placeholder="Search Unsplash..." />
+      <form onSubmit={searchPhotos}>
+        <input
+          type="text"
+          placeholder="Search Unsplash..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
         <button>Search</button>
       </form>
       <InfiniteScroll
